@@ -239,8 +239,8 @@ static struct i2c_driver ads122c04_driver = {
 		.of_match_table = ads122c04_of_match,
 		.pm = &ads1015_pm_ops,
 	},
-	.probe		= ads1015_probe,
-	.remove		= ads1015_remove,
+	.probe		= ads122c04_probe,
+	.remove		= ads122c04_remove,
 	.id_table	= ads122c04_id,
 };
 
