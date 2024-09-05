@@ -203,7 +203,12 @@ static int ads122c04_runtime_resume(struct device *dev)
 
 static int ads122c04_remove(struct i2c_client *client)
 {
-    return 0;
+	struct iio_dev *indio_dev = i2c_get_clientdata(client);
+	struct ads122c04_data *data = iio_priv(indio_dev);
+
+	iio_device_unregister(indio_dev);
+
+	return 0;
 }
 
 static int ads122c04_probe(struct i2c_client *client,
