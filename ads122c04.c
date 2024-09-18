@@ -84,6 +84,30 @@
 #define ADC122C04_CFG3_I1MUX_MASK   GENMASK(7, 5)
 
 
+#define CHANNEL_DISABLED                0
+#define CHANNEL_ENABLED                 1
+
+#define ADC122C04_PGA_ON                0    
+#define ADC122C04_PGA_OFF               1 
+
+#define ADC122C04_TURBO_MODE_OFF        0    
+#define ADC122C04_TURBO_MODE_ON         1
+
+#define ADC122C04_TEMPERATURE_MODE_OFF  0    
+#define ADC122C04_TEMPERATURE_MODE_ON   1    
+
+#define ADC122C04_CONV_MODE_SINGLE      0
+#define ADC122C04_CONV_MODE_CONTINUES   1
+
+
+#define ADC122C04_DEFAULT_PGA                   ADC122C04_PGA_ON
+#define ADC122C04_DEFAULT_GAIN                  1        
+#define ADC122C04_DEFAULT_DATA_RATE             330
+#define ADC122C04_DEFAULT_TURBO_MODE            ADC122C04_TURBO_MODE_OFF
+#define ADC122C04_DEFAULT_CONV_MODE             ADC122C04_CONV_MODE_SINGLE
+#define ADC122C04_DEFAULT_TEMPERATURE_MODE      ADC122C04_TEMPERATURE_MODE_OFF
+#define ADC122C04_DEFAULT_MAIN_VREF_REFERENCE   ADS122C04_VREF_INTERNAL
+
 enum ads122c04_channels {
 	ADS122C04_AIN0_AIN1 = 0,
 	ADS122C04_AIN0_AIN2,
@@ -130,8 +154,8 @@ enum ads122c04_idac_rounting {
 };
 
 
-static const unsigned int ads122c04_gain_conf[] = {
-	1, 2, 4, 8, 16, 32, 64, 128
+static const unsigned int ads122c04_gain_cfg[] = {
+	1, 2, 4, 8, 16, 32 , 64, 128
 };
 
 static const unsigned int ads122c04_data_rate[] = {
@@ -147,38 +171,40 @@ static const unsigned int ads122c04_idac_current[] = {
 };
 
 #define ADS122C04_CHAN(_chan, _addr) {				\
-	.type = IIO_VOLTAGE,					\
+	.type = IIO_VOLTAGE,				\
 	.indexed = 1,						\
 	.address = _addr,					\
 	.channel = _chan,					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |		\
-				BIT(IIO_CHAN_INFO_SAMP_FREQ),	\
-	.scan_index = _addr,					\
+	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |	\
+                BIT(IIO_CHAN_INFO_SCALE) |          \
+				BIT(IIO_CHAN_INFO_SAMP_FREQ),	    \
+	.scan_index = _addr,				\
 	.scan_type = {						\
 		.sign = 's',					\
 		.realbits = 24,					\
 		.storagebits = 24,				\
-		.endianness = IIO_CPU,				\
-	},							\
-	.datasheet_name = "AIN"#_chan,				\
+		.endianness = IIO_CPU,			\
+	},							        \
+	.datasheet_name = "AIN"#_chan,		\
 }
 
-#define ADS122C04_DIFF_CHAN(_chan, _chan2, _addr) {		\
-	.type = IIO_VOLTAGE,					\
+#define ADS122C04_DIFF_CHAN(_chan, _chan2, _addr) {	\
+	.type = IIO_VOLTAGE,				\
 	.differential = 1,					\
 	.indexed = 1,						\
 	.address = _addr,					\
 	.channel = _chan,					\
 	.channel2 = _chan2,					\   
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |		\
-				BIT(IIO_CHAN_INFO_SAMP_FREQ),	\
-	.scan_index = _addr,					\
+	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |	\
+    	        BIT(IIO_CHAN_INFO_SCALE) |          \
+				BIT(IIO_CHAN_INFO_SAMP_FREQ),	    \
+	.scan_index = _addr,				\
 	.scan_type = {						\
 		.sign = 's',					\
 		.realbits = 24,					\
 		.storagebits = 24,				\
-		.endianness = IIO_CPU,				\
-	},							\
+		.endianness = IIO_CPU,			\
+	},							        \
 	.datasheet_name = "AIN"#_chan"-AIN"#_chan2,		\
 }
 
@@ -385,6 +411,22 @@ static int ads122c04_set_data_rate(struct ads122c04_st *st, int chan, int rate)
 }
 
 
+static int ads122c04_set_data_rate(struct ads122c04_st *st, int chan, int gain)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(ads122c04_gain_cfg); i++) {
+		if (ads122c04_gain_cfg[i] == gain) {
+			st->channel_data[chan].data_rate = gain;
+			return 0;
+		}
+	}
+
+	return -EINVAL;
+}
+
+
+
 static int ads122c04_read_raw(struct iio_dev *indio_dev,
 			    struct iio_chan_spec const *chan, int *val,
 			    int *val2, long mask)
@@ -412,6 +454,10 @@ static int ads122c04_read_raw(struct iio_dev *indio_dev,
 release_direct:
 		iio_device_release_direct_mode(indio_dev);
 		break;
+	case IIO_CHAN_INFO_SCALE:
+		*val =st->channel_data[chan->address].gain
+		ret = IIO_VAL_INT;
+		break;
 	case IIO_CHAN_INFO_SAMP_FREQ:
 		*val = st->channel_data[chan->address].data_rate;
 		ret = IIO_VAL_INT;
@@ -435,6 +481,9 @@ static int ads1015_write_raw(struct iio_dev *indio_dev,
 	mutex_lock(&st->lock);
 
 	switch (mask) {
+    case IIO_CHAN_INFO_SCALE:
+		ret = ads122c04_set_data_rate(data, chan, val);
+		break;
 	case IIO_CHAN_INFO_SAMP_FREQ:
 		ret = ads122c04_set_data_rate(st, chan->address, val);
 		break;
@@ -449,11 +498,137 @@ static int ads1015_write_raw(struct iio_dev *indio_dev,
 }
 
 
+static IIO_CONST_ATTR_NAMED(ads122c04_scale_available,
+	scale_available, "1 2 4 8 16 32 64 128");
+
+static IIO_CONST_ATTR_NAMED(ads122c04_sampling_frequency_available,
+	sampling_frequency_available, "20 40 45 90 180 175 350 330 600 660 1000 1200 2000");
+
+static struct attribute *ads122c04_attributes[] = {
+    &iio_const_attr_ads122c04_scale_available.dev_attr.attr,
+	&iio_const_attr_ads122c04_sampling_frequency_available.dev_attr.attr,
+	NULL,
+};
+
+static const struct attribute_group ads122c04_attribute_group = {
+	.attrs = ads122c04_attributes,
+};
+
+
 static const struct iio_info ads122c04_info = {
 	.read_raw	= ads1015_read_raw,
 	.write_raw	= ads1015_write_raw,
+    .attrs      = &ads122c04_attributes,
 };
 
+
+static int ads122c04_client_get_channels_config(struct i2c_client *client)
+{
+	struct iio_dev *indio_dev = i2c_get_clientdata(client);
+	struct ads122c04_st *data = iio_priv(indio_dev);
+	struct device *dev = &client->dev;
+	struct fwnode_handle *node;
+	int i = -1;
+
+	device_for_each_child_node(dev, node) {
+		u32 pval;
+
+		if (fwnode_property_read_u32(node, "reg", &pval)) {
+			dev_err(dev, "invalid reg on %pfw\n", node);
+			continue;
+		}
+
+		channel = pval;
+		if (channel >= ADC122C04_CHANNELS) {
+			dev_err(dev, "invalid channel index %d on %pfw\n",
+				channel, node);
+			continue;
+		}
+
+        if (!fwnode_property_present(node, "ti,pga-disable"))
+            chan_default.pga = ADC122C04_PGA_OFF;
+
+		if (!fwnode_property_read_u32(node, "ti,gain", &pval)) {
+            if (chan_default.pga == ADC122C04_PGA_ON) {
+			    if (pga > 7) {
+				    dev_err(dev, "invalid gain on %pfw\n", node);
+				    fwnode_handle_put(node);
+				    return -EINVAL;
+			    }
+            } else {
+                	if (pga > 3) {
+				    dev_err(dev, "invalid gain on %pfw. pga is off\n", node);
+				    fwnode_handle_put(node);
+				    return -EINVAL;
+			    }
+            }
+            chan_default.gain = pval;
+		}
+
+		if (!fwnode_property_read_u32(node, "ti,datarate", &pval)) {
+			
+			if (data_rate > 7) {
+				dev_err(dev, "invalid data_rate on %pfw\n", node);
+				fwnode_handle_put(node);
+				return -EINVAL;
+			}
+            chan_default.datarate = pval;
+		}
+
+        if (!fwnode_property_read_u32(node, "ti,vref", &pval)) {
+			if (data_rate > 4) {
+				dev_err(dev, "invalid data_rate on %pfw\n", node);
+				fwnode_handle_put(node);
+				return -EINVAL;
+			}
+            chan_default.vref = pval;
+		}
+
+        if (!fwnode_property_present(node, "ti,turbo-mode-enabled"))
+            chan_default.turbo_mode = ADC122C04_TURBO_MODE_ON;
+
+        if (!fwnode_property_present(node, "ti,temperature-mode-enabled"))
+            chan_default.turbo_mode = ADC122C04_TEMPERATURE_MODE_ON;
+
+        if (!fwnode_property_present(node, "ti,continues-mode"))
+            chan_default.turbo_mode = ADC122C04_CONV_MODE_CONTINUES;
+
+		data->channel_data[channel] = chan_default;
+
+		i++;
+	}
+
+	return i < 0 ? -EINVAL : 0;
+}
+
+
+static void ads122c04_get_channels_config(struct i2c_client *client)
+{
+	unsigned int k;
+
+	struct iio_dev *indio_dev = i2c_get_clientdata(client);
+	struct ads122c04_st *data = iio_priv(indio_dev);
+    struct ads122c04_channel_data chan_default = {
+            .enabled = CHANNEL_ENABLED,
+            .pga_enabled = ADC122C04_DEFAULT_PGA,
+            .gain = ADC122C04_DEFAULT_GAIN,
+            .data_rate  = ADC122C04_DEFAULT_DATA_RATE
+            .turbo_mode = ADC122C04_DEFAULT_TURBO_MODE
+            .conv_mode = ADC122C04_DEFAULT_CONV_MODE,
+            .temperature_mode = ADC122C04_DEFAULT_TEMPERATURE_MODE,
+            .vref = ADC122C04_DEFAULT_MAIN_VREF_REFERENCE,
+    }
+
+    
+	/* Default configuration */
+	for (i = 0; i < ADC122C04_CHANNELS; ++i) {
+		data->channel_data[i] = chan_default;
+	}
+
+	if (!ads1015_client_get_channels_config(client))
+		return;
+
+}
 
 static int ads122c04_remove(struct i2c_client *client)
 {
@@ -491,27 +666,13 @@ static int ads122c04_probe(struct i2c_client *client,
 	if ( chip == ADS122C04) {
 		indio_dev->channels = ads122c04_channels;
 		indio_dev->num_channels = ARRAY_SIZE(ads122c04_channels);
-		indio_dev->info = &ads1015_info;
-		data->data_rate = (unsigned int *) &ads122c04_st_rate;
+		indio_dev->info = &ads122c04_info;
     } else {
 		dev_err(&client->dev, "Unknown chip %d\n", chip);
 		return -EINVAL;
     }
 
-	/* we need to keep this ABI the same as used by hwmon ADS1015 driver */
-	ads1015_get_channels_config(client);
-
-	data->regmap = devm_regmap_init_i2c(client, &ads1015_regmap_config);
-	if (IS_ERR(data->regmap)) {
-		dev_err(&client->dev, "Failed to allocate register map\n");
-		return PTR_ERR(data->regmap);
-	}
-
-	ret = ads1015_set_conv_mode(data, ADS1015_CONTINUOUS);
-	if (ret)
-		return ret;
-
-	data->conv_invalid = true;
+	ads122c04_get_channels_config(client);
 
 	ret = iio_device_register(indio_dev);
 	if (ret < 0) {
@@ -521,11 +682,6 @@ static int ads122c04_probe(struct i2c_client *client,
 
 	return 0;
 }
-
-static const struct dev_pm_ops ads122c04_pm_ops = {
-	SET_RUNTIME_PM_OPS(ads122c04_runtime_suspend,
-			   ads122c04_runtime_resume, NULL)
-};
 
 static const struct i2c_device_id ads122c04_id[] = {
 	{"ads122c04", ADS122C04},
@@ -537,7 +693,6 @@ MODULE_DEVICE_TABLE(i2c, ads1015_id);
 static const struct of_device_id ads122c04_of_match[] = {
 	{
 		.compatible = "ti,ads122c04",
-		.data = (void *)ADS122C04
 	},
 	{}
 };
@@ -547,7 +702,6 @@ static struct i2c_driver ads122c04_driver = {
 	.driver = {
 		.name = ADS122C04_DRV_NAME,
 		.of_match_table = ads122c04_of_match,
-		.pm = &ads1015_pm_ops,
 	},
 	.probe		= ads122c04_probe,
 	.remove		= ads122c04_remove,
