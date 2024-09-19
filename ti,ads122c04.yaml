@@ -7,3 +7,140 @@ title: Texas Instruments ADS122C04 analog-todigital converter
 
 maintainers:
   - Aluisio Leonello Victal <alvictal@gmail.com>
+
+properties:
+  compatible:
+    const: ti,ads122c04
+
+  reg:
+    maxItems: 1
+
+  "#address-cells":
+    const: 1
+
+  "#size-cells":
+    const: 0
+
+  "#io-channel-cells":
+    const: 1
+
+required:
+  - compatible
+  - reg
+  - "#address-cells"
+  - "#size-cells"
+
+additionalProperties: false
+
+patternProperties:
+  "^channel@[0-11]+$":
+    type: object
+    description:
+      Child nodes needed for each channel that the platform uses.
+
+    properties:
+      reg:
+        description: |
+          0: Voltage over AIN0 and AIN1.
+          1: Voltage over AIN0 and AIN2.
+          2: Voltage over AIN0 and AIN3.
+          3: Voltage over AIN1 and AIN0.
+          4: Voltage over AIN1 and AIN2.
+          5: Voltage over AIN1 and AIN3.
+          6: Voltage over AIN2 and AIN3.
+          7: Voltage over AIN3 and AIN2.
+          8: Voltage over AIN0 and GND.
+          9: Voltage over AIN1 and GND.
+          10: Voltage over AIN2 and GND.
+          11: Voltage over AIN3 and GND.
+        items:
+          - minimum: 0
+            maximum: 11
+
+      ti,gain:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 0
+        maximum: 7
+        description: |
+          Gain Configuration for pga is the programmable (value is )
+          0: 1 (Default) 
+          1: 2
+          2: 4
+          3: 8
+          4: 16
+          5: 32
+          6: 64
+          7: 12
+
+      ti,datarate:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 0
+        maximum: 6
+        description: |
+          Data acquisition rate in samples per second (multiply x2 with turbo mode is enabled)
+          0: 20
+          1: 45
+          2: 90
+          3: 175
+          4: 330 (Default)
+          5: 600
+          6: 100
+
+      ti,pga-disable:
+        description: 
+          Disable and by passes the internal low-noise PGA
+        type: boolean
+
+      ti,turbo-mode-enabled:
+        description: 
+          Activate 512 Mhz modulator clock (all data rate configuration will work x2)
+        type: boolean
+
+      ti,temperature-mode-enabled:
+        description: 
+          Enables the internal temperature sensor and puts the device in temperature sensor mode
+        type: boolean
+
+      ti,continues-mode-enabled:
+        description: 
+          Set the conversion mode to work as continues instead of single-shot
+        type: boolean
+
+      ti,vref:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 0
+        maximum: 3
+        description: |
+          Select the voltage reference source that is used for the conversion
+          0: Internal 2.048-V reference (default)
+          1: External reference selected using the REFP and REFN inputs
+          2: Analog supply (AVDD – AVSS) used as reference
+          3: Analog supply (AVDD – AVSS) used as reference
+
+    required:
+      - reg
+
+examples:
+  - |
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        adc@40 {
+            compatible = "ti,ads122c04";
+            reg = <0x40>;
+            #address-cells = <1>;
+            #size-cells = <0>;
+            
+            channel@0 {
+              reg = <0>;
+            };
+
+            channel@4 {
+              reg = <4>;
+              ti,gain = <3>;
+              ti,datarate = <5>;
+              ti,turbo-mode-enabled;
+            };
+        };
+    };
