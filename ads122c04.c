@@ -222,7 +222,7 @@ struct ads122c04_channel_data {
 
 
 struct ads122c04_st {
-	struct i2c_client *i2c;
+	struct i2c_client *client;
 	/*
 	 * Protects ADC ops, e.g: concurrent sysfs/buffered
 	 * data reads, configuration updates
