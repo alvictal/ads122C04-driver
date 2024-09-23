@@ -549,10 +549,10 @@ static int ads122c04_client_get_channels_config(struct i2c_client *client)
         data->channel_data[channel].enabled = CHANNEL_ENABLED;
 
         if (!fwnode_property_present(node, "ti,pga-disable"))
-            data->channel_data[channel].pga = ADS122C04_PGA_OFF;
+            data->channel_data[channel].pga_enabled = ADS122C04_PGA_OFF;
 
 		if (!fwnode_property_read_u32(node, "ti,gain", &pval)) {
-            if (data->channel_data[channel].pga == ADS122C04_PGA_ON) {
+            if (data->channel_data[channel].pga_enabled == ADS122C04_PGA_ON) {
 			    if (pval > 7) {
 				    dev_err(dev, "invalid gain on %pfw\n", node);
 				    fwnode_handle_put(node);
@@ -575,7 +575,7 @@ static int ads122c04_client_get_channels_config(struct i2c_client *client)
 				fwnode_handle_put(node);
 				return -EINVAL;
 			}
-            data->channel_data[channel].datarate = pval;
+            data->channel_data[channel].data_rate = pval;
 		}
 
         if (!fwnode_property_read_u32(node, "ti,vref", &pval)) {
@@ -633,7 +633,7 @@ static void ads122c04_get_channels_config(struct i2c_client *client)
 static int ads122c04_remove(struct i2c_client *client)
 {
 	struct iio_dev *indio_dev = i2c_get_clientdata(client);
-	struct ads122c04_st *data = iio_priv(indio_dev);
+	//struct ads122c04_st *data = iio_priv(indio_dev);
 
 	iio_device_unregister(indio_dev);
 
@@ -646,7 +646,6 @@ static int ads122c04_probe(struct i2c_client *client,
 	struct iio_dev *indio_dev;
 	struct ads122c04_st *data;
 	enum chip_ids chip;
-	int i;
     int ret;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
