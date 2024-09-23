@@ -712,5 +712,5 @@ module_i2c_driver(ads122c04_driver);
 
 MODULE_AUTHOR("Aluisio Leonello Victal <alvictal@gmail.com>");
 MODULE_DESCRIPTION("Texas Instruments ADS122C04 ADC driver");
-MODULE_LICENSE("MIT");
+MODULE_LICENSE("GPL v2");
 
