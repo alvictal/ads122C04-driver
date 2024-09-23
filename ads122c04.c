@@ -101,12 +101,17 @@
 
 
 #define ADS122C04_DEFAULT_PGA                   ADS122C04_PGA_ON
-#define ADS122C04_DEFAULT_GAIN                  1        
-#define ADS122C04_DEFAULT_DATA_RATE             330
+#define ADS122C04_DEFAULT_GAIN                  0 /*1*/        
+#define ADS122C04_DEFAULT_DATA_RATE             4 /*330*/
 #define ADS122C04_DEFAULT_TURBO_MODE            ADS122C04_TURBO_MODE_OFF
 #define ADS122C04_DEFAULT_CONV_MODE             ADS122C04_CONV_MODE_SINGLE
 #define ADS122C04_DEFAULT_TEMPERATURE_MODE      ADS122C04_TEMPERATURE_MODE_OFF
 #define ADS122C04_DEFAULT_MAIN_VREF_REFERENCE   ADS122C04_VREF_INTERNAL
+
+enum chip_ids {
+	ADSXXXXXX = 0,
+	ADS122C04,
+};
 
 enum ads122c04_channels {
 	ADS122C04_AIN0_AIN1 = 0,
@@ -541,57 +546,55 @@ static int ads122c04_client_get_channels_config(struct i2c_client *client)
 			continue;
 		}
 
-        chan_default.enabled = CHANNEL_ENABLED;
+        data->channel_data[channel].enabled = CHANNEL_ENABLED;
 
         if (!fwnode_property_present(node, "ti,pga-disable"))
-            chan_default.pga = ADS122C04_PGA_OFF;
+            data->channel_data[channel].pga = ADS122C04_PGA_OFF;
 
 		if (!fwnode_property_read_u32(node, "ti,gain", &pval)) {
-            if (chan_default.pga == ADS122C04_PGA_ON) {
-			    if (pga > 7) {
+            if (data->channel_data[channel].pga == ADS122C04_PGA_ON) {
+			    if (pval > 7) {
 				    dev_err(dev, "invalid gain on %pfw\n", node);
 				    fwnode_handle_put(node);
 				    return -EINVAL;
 			    }
             } else {
-                	if (pga > 3) {
+                	if (pval > 3) {
 				    dev_err(dev, "invalid gain on %pfw. pga is off\n", node);
 				    fwnode_handle_put(node);
 				    return -EINVAL;
 			    }
             }
-            chan_default.gain = pval;
+            data->channel_data[channel].gain = pval;
 		}
 
 		if (!fwnode_property_read_u32(node, "ti,datarate", &pval)) {
 			
-			if (data_rate > 7) {
+			if (pval > 7) {
 				dev_err(dev, "invalid data_rate on %pfw\n", node);
 				fwnode_handle_put(node);
 				return -EINVAL;
 			}
-            chan_default.datarate = pval;
+            data->channel_data[channel].datarate = pval;
 		}
 
         if (!fwnode_property_read_u32(node, "ti,vref", &pval)) {
-			if (data_rate > 4) {
-				dev_err(dev, "invalid data_rate on %pfw\n", node);
+			if (pval > 4) {
+				dev_err(dev, "invalid vref on %pfw\n", node);
 				fwnode_handle_put(node);
 				return -EINVAL;
 			}
-            chan_default.vref = pval;
+            data->channel_data[channel].vref = pval;
 		}
 
         if (!fwnode_property_present(node, "ti,turbo-mode-enabled"))
-            chan_default.turbo_mode = ADS122C04_TURBO_MODE_ON;
+            data->channel_data[channel].turbo_mode = ADS122C04_TURBO_MODE_ON;
 
         if (!fwnode_property_present(node, "ti,temperature-mode-enabled"))
-            chan_default.turbo_mode = ADS122C04_TEMPERATURE_MODE_ON;
+            data->channel_data[channel].turbo_mode = ADS122C04_TEMPERATURE_MODE_ON;
 
         if (!fwnode_property_present(node, "ti,continues-mode"))
-            chan_default.turbo_mode = ADS122C04_CONV_MODE_CONTINUES;
-
-		data->channel_data[channel] = chan_default;
+            data->channel_data[channel].turbo_mode = ADS122C04_CONV_MODE_CONTINUES;
 
 		i++;
 	}
@@ -602,8 +605,6 @@ static int ads122c04_client_get_channels_config(struct i2c_client *client)
 
 static void ads122c04_get_channels_config(struct i2c_client *client)
 {
-	unsigned int k;
-
 	struct iio_dev *indio_dev = i2c_get_clientdata(client);
 	struct ads122c04_st *data = iio_priv(indio_dev);
     struct ads122c04_channel_data chan_default = {
@@ -616,10 +617,11 @@ static void ads122c04_get_channels_config(struct i2c_client *client)
             .temperature_mode = ADS122C04_DEFAULT_TEMPERATURE_MODE,
             .vref = ADS122C04_DEFAULT_MAIN_VREF_REFERENCE,
     };
+    int i = 0;
 
     
 	/* Default configuration */
-	for (int i = 0; i < ADS122C04_CHANNELS; ++i) {
+	for(i = 0; i < ADS122C04_CHANNELS; ++i) {
 		data->channel_data[i] = chan_default;
 	}
 
@@ -654,7 +656,7 @@ static int ads122c04_probe(struct i2c_client *client,
 	data = iio_priv(indio_dev);
 	i2c_set_clientdata(client, indio_dev);
 
-    data->i2c = client;
+    data->client = client;
 	mutex_init(&data->lock);
 
 	indio_dev->name = ADS122C04_DRV_NAME;
@@ -685,6 +687,7 @@ static const struct i2c_device_id ads122c04_id[] = {
 	{"ads122c04", ADS122C04},
 	{}
 };
+
 MODULE_DEVICE_TABLE(i2c, ads122c04_id);
 
 
