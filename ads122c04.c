@@ -28,85 +28,85 @@
 
 #define ADS122C04_DRV_NAME "ads122c04"
 
-#define ADC122C04_CHANNELS 12
+#define ADS122C04_CHANNELS 12
 
-#define ADC122C04_POWERDOWN	    0x02    /* 0000 001X */
-#define ADC122C04_RESET         0x06    /* 0000 011X */
-#define ADC122C04_STARTSYNC	    0x08    /* 0000 100X */
-#define ADC122C04_RDATA	        0x16    /* 0001 XXXX */
-#define ADC122C04_RREG_CGF0_REG	0x32    /* 0010 00XX */
-#define ADC122C04_RREG_CGF1_REG	0x36    /* 0010 01XX */
-#define ADC122C04_RREG_CGF2_REG	0x40    /* 0010 10XX */
-#define ADC122C04_RREG_CGF3_REG	0x44    /* 0010 11XX */
-#define ADC122C04_WREG_CGF0_REG	0x64    /* 0100 00XX */
-#define ADC122C04_WREG_CGF1_REG	0x68    /* 0100 01XX */
-#define ADC122C04_WREG_CGF2_REG	0x72    /* 0100 10XX */
-#define ADC122C04_WREG_CGF3_REG	0x76    /* 0100 11XX */
-
-
-
-#define ADC122C04_CFG0_GAIN_SHIFT   1
-#define ADC122C04_CFG0_MUX_SHIFT    4
-
-#define ADC122C04_CFG0_PGA_MASK     BIT(0)
-#define ADC122C04_CFG0_GAIN_MASK    GENMASK(3, 1)
-#define ADC122C04_CFG0_MUX_MASK     GENMASK(7, 4)
+#define ADS122C04_POWERDOWN	    0x02    /* 0000 001X */
+#define ADS122C04_RESET         0x06    /* 0000 011X */
+#define ADS122C04_STARTSYNC	    0x08    /* 0000 100X */
+#define ADS122C04_RDATA	        0x16    /* 0001 XXXX */
+#define ADS122C04_RREG_CGF0_REG	0x32    /* 0010 00XX */
+#define ADS122C04_RREG_CGF1_REG	0x36    /* 0010 01XX */
+#define ADS122C04_RREG_CGF2_REG	0x40    /* 0010 10XX */
+#define ADS122C04_RREG_CGF3_REG	0x44    /* 0010 11XX */
+#define ADS122C04_WREG_CGF0_REG	0x64    /* 0100 00XX */
+#define ADS122C04_WREG_CGF1_REG	0x68    /* 0100 01XX */
+#define ADS122C04_WREG_CGF2_REG	0x72    /* 0100 10XX */
+#define ADS122C04_WREG_CGF3_REG	0x76    /* 0100 11XX */
 
 
-#define ADC122C04_CFG1_VREF_SHIFT   1
-#define ADC122C04_CFG1_CM_SHIFT     3
-#define ADC122C04_CFG1_MODE_SHIFT   4
-#define ADC122C04_CFG1_DR_SHIFT     5
 
-#define ADC122C04_CFG1_TS_MASK      BIT(0)
-#define ADC122C04_CFG1_VREF_MASK    GENMASK(2, 1)
-#define ADC122C04_CFG1_CM_MASK      BIT(3)
-#define ADC122C04_CFG1_MODE_MASK    BIT(4)
-#define ADC122C04_CFG1_DR_MASK      GENMASK(7, 5)
+#define ADS122C04_CFG0_GAIN_SHIFT   1
+#define ADS122C04_CFG0_MUX_SHIFT    4
+
+#define ADS122C04_CFG0_PGA_MASK     BIT(0)
+#define ADS122C04_CFG0_GAIN_MASK    GENMASK(3, 1)
+#define ADS122C04_CFG0_MUX_MASK     GENMASK(7, 4)
 
 
-#define ADC122C04_CFG2_BCS_SHIFT   3
-#define ADC122C04_CFG2_CRC_SHIFT   4
-#define ADC122C04_CFG2_DCNT_SHIFT  6
-#define ADC122C04_CFG2_DRDY_SHIFT  7
+#define ADS122C04_CFG1_VREF_SHIFT   1
+#define ADS122C04_CFG1_CM_SHIFT     3
+#define ADS122C04_CFG1_MODE_SHIFT   4
+#define ADS122C04_CFG1_DR_SHIFT     5
 
-#define ADC122C04_CFG2_IDAC_MASK   GENMASK(2, 0)
-#define ADC122C04_CFG2_BCS_MASK    BIT(3)
-#define ADC122C04_CFG2_CRC_MASK    GENMASK(5, 4)
-#define ADC122C04_CFG2_DCNT_MASK   BIT(6)
-#define ADC122C04_CFG2_DRDY_MASK   BIT(7)
+#define ADS122C04_CFG1_TS_MASK      BIT(0)
+#define ADS122C04_CFG1_VREF_MASK    GENMASK(2, 1)
+#define ADS122C04_CFG1_CM_MASK      BIT(3)
+#define ADS122C04_CFG1_MODE_MASK    BIT(4)
+#define ADS122C04_CFG1_DR_MASK      GENMASK(7, 5)
 
 
-#define ADC122C04_CFG3_I2MUX_SHIFT  2
-#define ADC122C04_CFG3_I1MUX_SHIFT  5
+#define ADS122C04_CFG2_BCS_SHIFT   3
+#define ADS122C04_CFG2_CRC_SHIFT   4
+#define ADS122C04_CFG2_DCNT_SHIFT  6
+#define ADS122C04_CFG2_DRDY_SHIFT  7
 
-#define ADC122C04_CFG3_I2MUX_MASK   GENMASK(4, 2)
-#define ADC122C04_CFG3_I1MUX_MASK   GENMASK(7, 5)
+#define ADS122C04_CFG2_IDAC_MASK   GENMASK(2, 0)
+#define ADS122C04_CFG2_BCS_MASK    BIT(3)
+#define ADS122C04_CFG2_CRC_MASK    GENMASK(5, 4)
+#define ADS122C04_CFG2_DCNT_MASK   BIT(6)
+#define ADS122C04_CFG2_DRDY_MASK   BIT(7)
+
+
+#define ADS122C04_CFG3_I2MUX_SHIFT  2
+#define ADS122C04_CFG3_I1MUX_SHIFT  5
+
+#define ADS122C04_CFG3_I2MUX_MASK   GENMASK(4, 2)
+#define ADS122C04_CFG3_I1MUX_MASK   GENMASK(7, 5)
 
 
 #define CHANNEL_DISABLED                0
 #define CHANNEL_ENABLED                 1
 
-#define ADC122C04_PGA_ON                0    
-#define ADC122C04_PGA_OFF               1 
+#define ADS122C04_PGA_ON                0    
+#define ADS122C04_PGA_OFF               1 
 
-#define ADC122C04_TURBO_MODE_OFF        0    
-#define ADC122C04_TURBO_MODE_ON         1
+#define ADS122C04_TURBO_MODE_OFF        0    
+#define ADS122C04_TURBO_MODE_ON         1
 
-#define ADC122C04_TEMPERATURE_MODE_OFF  0    
-#define ADC122C04_TEMPERATURE_MODE_ON   1    
+#define ADS122C04_TEMPERATURE_MODE_OFF  0    
+#define ADS122C04_TEMPERATURE_MODE_ON   1    
 
-#define ADC122C04_CONV_MODE_SINGLE      0
-#define ADC122C04_CONV_MODE_CONTINUES   1
+#define ADS122C04_CONV_MODE_SINGLE      0
+#define ADS122C04_CONV_MODE_CONTINUES   1
 
 
-#define ADC122C04_DEFAULT_PGA                   ADC122C04_PGA_ON
-#define ADC122C04_DEFAULT_GAIN                  1        
-#define ADC122C04_DEFAULT_DATA_RATE             330
-#define ADC122C04_DEFAULT_TURBO_MODE            ADC122C04_TURBO_MODE_OFF
-#define ADC122C04_DEFAULT_CONV_MODE             ADC122C04_CONV_MODE_SINGLE
-#define ADC122C04_DEFAULT_TEMPERATURE_MODE      ADC122C04_TEMPERATURE_MODE_OFF
-#define ADC122C04_DEFAULT_MAIN_VREF_REFERENCE   ADS122C04_VREF_INTERNAL
+#define ADS122C04_DEFAULT_PGA                   ADS122C04_PGA_ON
+#define ADS122C04_DEFAULT_GAIN                  1        
+#define ADS122C04_DEFAULT_DATA_RATE             330
+#define ADS122C04_DEFAULT_TURBO_MODE            ADS122C04_TURBO_MODE_OFF
+#define ADS122C04_DEFAULT_CONV_MODE             ADS122C04_CONV_MODE_SINGLE
+#define ADS122C04_DEFAULT_TEMPERATURE_MODE      ADS122C04_TEMPERATURE_MODE_OFF
+#define ADS122C04_DEFAULT_MAIN_VREF_REFERENCE   ADS122C04_VREF_INTERNAL
 
 enum ads122c04_channels {
 	ADS122C04_AIN0_AIN1 = 0,
@@ -194,7 +194,7 @@ static const unsigned int ads122c04_idac_current[] = {
 	.indexed = 1,						\
 	.address = _addr,					\
 	.channel = _chan,					\
-	.channel2 = _chan2,					\   
+	.channel2 = _chan2,					\
 	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |	\
     	        BIT(IIO_CHAN_INFO_SCALE) |          \
 				BIT(IIO_CHAN_INFO_SAMP_FREQ),	    \
@@ -215,7 +215,7 @@ struct ads122c04_channel_data {
     bool pga_enabled;
     u8 data_rate;
     bool turbo_mode; /* false - normal mode; true -  Turbo mode*/
-    bool conv_mode /* false - single ; true - continues*/
+    bool conv_mode; /* false - single ; true - continues*/
     bool temperature_mode;
     u8 vref; 
 };
@@ -256,7 +256,7 @@ static const struct iio_chan_spec ads122c04_channels[] = {
 	ADS122C04_CHAN(3, ADS122C04_AIN3_AVSS),
 };
 
-static int ads122c04_write_value(const struct ads122c04_state *st, const u8 cmd, const u8 *value) 
+static int ads122c04_write_value(const struct ads122c04_st *st, const u8 cmd, const u8 *value) 
 {
     int ret;
 
@@ -274,16 +274,15 @@ static int ads122c04_write_value(const struct ads122c04_state *st, const u8 cmd,
     return 0;
 }
 
-static int ads122c04_read_reg_value(const struct ads122c04_state *st, const u8 reg, u8 *value)
+static int ads122c04_read_reg_value(const struct ads122c04_st *st, const u8 reg, u8 *value)
 {
-    int ret;
-    if (reg < ADC122C04_RREG_CGF0_REG || reg > ADC122C04_RREG_CGF3_REG) 
+    if (reg < ADS122C04_RREG_CGF0_REG || reg > ADS122C04_RREG_CGF3_REG) 
         return -EINVAL;
 
     return  i2c_smbus_read_byte_data(st->client, reg, value);
 }
 
-static int ads122c04_read_adc(const struct ads122c04_state *st, int *value)
+static int ads122c04_read_adc(const struct ads122c04_st *st, int *value)
 {
     int ret;
 
@@ -292,7 +291,7 @@ static int ads122c04_read_adc(const struct ads122c04_state *st, int *value)
     msleep(1); 
 
     // Read the ADC result from the data registers of ADS122C04
-    ret = i2c_smbus_read_i2c_block_data(st->client, ADC122C04_RDATA, 3, result_buf);
+    ret = i2c_smbus_read_i2c_block_data(st->client, ADS122C04_RDATA, 3, result_buf);
     if (ret < 0) {
         dev_err(&st->client->dev, "Failed to read ADC result: %d\n", ret);
         return ret;
@@ -300,7 +299,7 @@ static int ads122c04_read_adc(const struct ads122c04_state *st, int *value)
 
     // The result is in 3 bytes (24 bits), 
     // Combine the 3 bytes to form the 24-bit ADC result
-    *val = (result_buf[0] << 16) | (result_buf[1] << 8) | result_buf[2];
+    *value = (result_buf[0] << 16) | (result_buf[1] << 8) | result_buf[2];
 
     return 0;
 }
@@ -311,62 +310,59 @@ static int ads122c04_write_cfg0(const struct ads122c04_st *st, const int chan)
     int ret; 
     u8 cfg = 0;
 
-    cfg = chan << ADC122C04_CFG0_MUX_SHIFT |
-        st->channel_data[chan].gain << ADC122C04_CFG0_GAIN_SHIFT | 
+    cfg = chan << ADS122C04_CFG0_MUX_SHIFT |
+        st->channel_data[chan].gain << ADS122C04_CFG0_GAIN_SHIFT | 
         st->channel_data[chan].pga_enabled;
 
-    ads122c04_write_value(st, ADC122C04_WREG_CGF0_REG, &cfg);
+    ads122c04_write_value(st, ADS122C04_WREG_CGF0_REG, &cfg);
     return 0;
 }
 
 static int ads122c04_write_cfg1(const struct ads122c04_st *st, const int chan)
 {
-    int ret; 
     u8 cfg = 0;
 
-    cfg = st->channel_data[chan].data_rate << ADC122C04_CFG1_DR_SHIFT | 
-        st->channel_data[chan].turbo_mode << ADC122C04_CFG1_MODE_SHIFT | 
-        st->channel_data[chan].conv_mode << ADC122C04_CFG1_CM_SHIFT |
-        st->channel_data[chan].vref << ADC122C04_CFG1_VREF_SHIFT |
+    cfg = st->channel_data[chan].data_rate << ADS122C04_CFG1_DR_SHIFT | 
+        st->channel_data[chan].turbo_mode << ADS122C04_CFG1_MODE_SHIFT | 
+        st->channel_data[chan].conv_mode << ADS122C04_CFG1_CM_SHIFT |
+        st->channel_data[chan].vref << ADS122C04_CFG1_VREF_SHIFT |
         st->channel_data[chan].temperature_mode;
 
-    ads122c04_write_value(st, ADC122C04_WREG_CGF1_REG, &cfg);
+    ads122c04_write_value(st, ADS122C04_WREG_CGF1_REG, &cfg);
     return 0;
 }
 
 static int ads122c04_write_cfg2(const struct ads122c04_st *st)
 {
-    int ret; 
     u8 cfg = 0;
     
-    cfg = st->counter_enabled << ADC122C04_CFG2_DCNT_SHIFT | 
-        st->crc_check << ADC122C04_CFG2_CRC_SHIFT | 
-        st->burnout << ADC122C04_CFG2_BCS_SHIFT |
+    cfg = st->counter_enabled << ADS122C04_CFG2_DCNT_SHIFT | 
+        st->crc_check << ADS122C04_CFG2_CRC_SHIFT | 
+        st->burnout << ADS122C04_CFG2_BCS_SHIFT |
         st->idac;
 
-    ads122c04_write_value(st, ADC122C04_WREG_CGF2_REG, &cfg);
+    ads122c04_write_value(st, ADS122C04_WREG_CGF2_REG, &cfg);
     return 0;
 }
 
 
 static int ads122c04_write_cfg3(const struct ads122c04_st *st)
 { 
-    int ret; 
     u8 cfg = 0;
 
-    cfg = st->idac1_mux << ADC122C04_CFG3_I1MUX_SHIFT | 
-        st->idac2_mux << ADC122C04_CFG3_I2MUX_SHIFT;
+    cfg = st->idac1_mux << ADS122C04_CFG3_I1MUX_SHIFT | 
+        st->idac2_mux << ADS122C04_CFG3_I2MUX_SHIFT;
 
-    ads122c04_write_value(st, ADC122C04_WREG_CGF3_REG, &cfg);
+    ads122c04_write_value(st, ADS122C04_WREG_CGF3_REG, &cfg);
     return 0;
 }
 
 
 static int ads122c04_get_adc_result(const struct ads122c04_st *st, const int chan, int *val)
 {
-    int ret 
+    int ret;
 
-	if (chan < 0 || chan >= ADC122C04_CHANNELS)
+	if (chan < 0 || chan >= ADS122C04_CHANNELS)
 		return -EINVAL;
 
     ret = ads122c04_write_cfg0(st, data, chan);
@@ -379,12 +375,12 @@ static int ads122c04_get_adc_result(const struct ads122c04_st *st, const int cha
 
     /* Start/Sync depends of the convertion mode and the
        Datasheet recomends send de STARTSYNC cmd when the cfg1 is modified */
-    ret = ads122c04_write_value(st, ADC122C04_STARTSYNC, NULL);
+    ret = ads122c04_write_value(st, ADS122C04_STARTSYNC, NULL);
 	if (ret) {
 		return ret;
     }
 
-	return ads122c04_read_adc(st, ADC122C04_RDATA, val);
+	return ads122c04_read_adc(st, val);
 }
 
 
@@ -411,7 +407,7 @@ static int ads122c04_set_data_rate(struct ads122c04_st *st, int chan, int rate)
 }
 
 
-static int ads122c04_set_data_rate(struct ads122c04_st *st, int chan, int gain)
+static int ads122c04_set_gain(struct ads122c04_st *st, int chan, int gain)
 {
 	int i;
 
@@ -431,7 +427,7 @@ static int ads122c04_read_raw(struct iio_dev *indio_dev,
 			    struct iio_chan_spec const *chan, int *val,
 			    int *val2, long mask)
 {
-	int ret, idx;
+	int ret;
 	struct ads122c04_st *st = iio_priv(indio_dev);
 
 	mutex_lock(&st->lock);
@@ -455,7 +451,7 @@ release_direct:
 		iio_device_release_direct_mode(indio_dev);
 		break;
 	case IIO_CHAN_INFO_SCALE:
-		*val =st->channel_data[chan->address].gain
+		*val = st->channel_data[chan->address].gain;
 		ret = IIO_VAL_INT;
 		break;
 	case IIO_CHAN_INFO_SAMP_FREQ:
@@ -471,7 +467,7 @@ release_direct:
 	return ret;
 }
 
-static int ads1015_write_raw(struct iio_dev *indio_dev,
+static int ads122c04_write_raw(struct iio_dev *indio_dev,
 			     struct iio_chan_spec const *chan, int val,
 			     int val2, long mask)
 {
@@ -482,7 +478,7 @@ static int ads1015_write_raw(struct iio_dev *indio_dev,
 
 	switch (mask) {
     case IIO_CHAN_INFO_SCALE:
-		ret = ads122c04_set_data_rate(data, chan, val);
+		ret = ads122c04_set_gain(st, chan->address, val);
 		break;
 	case IIO_CHAN_INFO_SAMP_FREQ:
 		ret = ads122c04_set_data_rate(st, chan->address, val);
@@ -516,8 +512,8 @@ static const struct attribute_group ads122c04_attribute_group = {
 
 
 static const struct iio_info ads122c04_info = {
-	.read_raw	= ads1015_read_raw,
-	.write_raw	= ads1015_write_raw,
+	.read_raw	= ads122c04_read_raw,
+	.write_raw	= ads122c04_write_raw,
     .attrs      = &ads122c04_attributes,
 };
 
@@ -539,17 +535,19 @@ static int ads122c04_client_get_channels_config(struct i2c_client *client)
 		}
 
 		channel = pval;
-		if (channel >= ADC122C04_CHANNELS) {
+		if (channel >= ADS122C04_CHANNELS) {
 			dev_err(dev, "invalid channel index %d on %pfw\n",
 				channel, node);
 			continue;
 		}
 
+        chan_default.enabled = CHANNEL_ENABLED;
+
         if (!fwnode_property_present(node, "ti,pga-disable"))
-            chan_default.pga = ADC122C04_PGA_OFF;
+            chan_default.pga = ADS122C04_PGA_OFF;
 
 		if (!fwnode_property_read_u32(node, "ti,gain", &pval)) {
-            if (chan_default.pga == ADC122C04_PGA_ON) {
+            if (chan_default.pga == ADS122C04_PGA_ON) {
 			    if (pga > 7) {
 				    dev_err(dev, "invalid gain on %pfw\n", node);
 				    fwnode_handle_put(node);
@@ -585,13 +583,13 @@ static int ads122c04_client_get_channels_config(struct i2c_client *client)
 		}
 
         if (!fwnode_property_present(node, "ti,turbo-mode-enabled"))
-            chan_default.turbo_mode = ADC122C04_TURBO_MODE_ON;
+            chan_default.turbo_mode = ADS122C04_TURBO_MODE_ON;
 
         if (!fwnode_property_present(node, "ti,temperature-mode-enabled"))
-            chan_default.turbo_mode = ADC122C04_TEMPERATURE_MODE_ON;
+            chan_default.turbo_mode = ADS122C04_TEMPERATURE_MODE_ON;
 
         if (!fwnode_property_present(node, "ti,continues-mode"))
-            chan_default.turbo_mode = ADC122C04_CONV_MODE_CONTINUES;
+            chan_default.turbo_mode = ADS122C04_CONV_MODE_CONTINUES;
 
 		data->channel_data[channel] = chan_default;
 
@@ -609,23 +607,23 @@ static void ads122c04_get_channels_config(struct i2c_client *client)
 	struct iio_dev *indio_dev = i2c_get_clientdata(client);
 	struct ads122c04_st *data = iio_priv(indio_dev);
     struct ads122c04_channel_data chan_default = {
-            .enabled = CHANNEL_ENABLED,
-            .pga_enabled = ADC122C04_DEFAULT_PGA,
-            .gain = ADC122C04_DEFAULT_GAIN,
-            .data_rate  = ADC122C04_DEFAULT_DATA_RATE
-            .turbo_mode = ADC122C04_DEFAULT_TURBO_MODE
-            .conv_mode = ADC122C04_DEFAULT_CONV_MODE,
-            .temperature_mode = ADC122C04_DEFAULT_TEMPERATURE_MODE,
-            .vref = ADC122C04_DEFAULT_MAIN_VREF_REFERENCE,
+            .enabled = CHANNEL_DISABLED,
+            .pga_enabled = ADS122C04_DEFAULT_PGA,
+            .gain = ADS122C04_DEFAULT_GAIN,
+            .data_rate  = ADS122C04_DEFAULT_DATA_RATE
+            .turbo_mode = ADS122C04_DEFAULT_TURBO_MODE
+            .conv_mode = ADS122C04_DEFAULT_CONV_MODE,
+            .temperature_mode = ADS122C04_DEFAULT_TEMPERATURE_MODE,
+            .vref = ADS122C04_DEFAULT_MAIN_VREF_REFERENCE,
     }
 
     
 	/* Default configuration */
-	for (i = 0; i < ADC122C04_CHANNELS; ++i) {
+	for (int i = 0; i < ADS122C04_CHANNELS; ++i) {
 		data->channel_data[i] = chan_default;
 	}
 
-	if (!ads1015_client_get_channels_config(client))
+	if (!ads122c04_client_get_channels_config(client))
 		return;
 
 }
@@ -687,7 +685,7 @@ static const struct i2c_device_id ads122c04_id[] = {
 	{"ads122c04", ADS122C04},
 	{}
 };
-MODULE_DEVICE_TABLE(i2c, ads1015_id);
+MODULE_DEVICE_TABLE(i2c, ads122c04_id);
 
 
 static const struct of_device_id ads122c04_of_match[] = {
