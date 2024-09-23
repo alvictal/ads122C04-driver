@@ -26,7 +26,7 @@
 #include <linux/iio/triggered_buffer.h>
 #include <linux/iio/trigger_consumer.h>
 
-#define ADS122C04_DRV_NAME "ads122c04"
+#define ADS122C04_DRV_NAME "ti-ads122c04"
 
 #define ADS122C04_CHANNELS 12
 
@@ -109,8 +109,8 @@
 #define ADS122C04_DEFAULT_MAIN_VREF_REFERENCE   ADS122C04_VREF_INTERNAL
 
 enum chip_ids {
-	ADSXXXXXX = 0,
-	ADS122C04,
+	ADS122C04 = 0,
+    ADSXXXXXX,
 };
 
 enum ads122c04_channels {
