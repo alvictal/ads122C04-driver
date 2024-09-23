@@ -279,7 +279,7 @@ static int ads122c04_read_reg_value(const struct ads122c04_st *st, const u8 reg,
     if (reg < ADS122C04_RREG_CGF0_REG || reg > ADS122C04_RREG_CGF3_REG) 
         return -EINVAL;
 
-    return  i2c_smbus_read_byte_data(st->client, reg, value);
+    return  i2c_smbus_read_byte_data(st->client, reg);
 }
 
 static int ads122c04_read_adc(const struct ads122c04_st *st, int *value)
@@ -307,7 +307,6 @@ static int ads122c04_read_adc(const struct ads122c04_st *st, int *value)
 
 static int ads122c04_write_cfg0(const struct ads122c04_st *st, const int chan)
 {
-    int ret; 
     u8 cfg = 0;
 
     cfg = chan << ADS122C04_CFG0_MUX_SHIFT |
@@ -365,11 +364,11 @@ static int ads122c04_get_adc_result(const struct ads122c04_st *st, const int cha
 	if (chan < 0 || chan >= ADS122C04_CHANNELS)
 		return -EINVAL;
 
-    ret = ads122c04_write_cfg0(st, data, chan);
+    ret = ads122c04_write_cfg0(st, chan);
     if (ret)
         return ret;
 
-    ret = ads122c04_write_cfg1(st, data, chan);
+    ret = ads122c04_write_cfg1(st, chan);
     if (ret)
         return ret;
 
@@ -488,7 +487,7 @@ static int ads122c04_write_raw(struct iio_dev *indio_dev,
 		break;
 	}
 
-	mutex_unlock(&data->lock);
+	mutex_unlock(&st->lock);
 
 	return ret;
 }
@@ -514,7 +513,7 @@ static const struct attribute_group ads122c04_attribute_group = {
 static const struct iio_info ads122c04_info = {
 	.read_raw	= ads122c04_read_raw,
 	.write_raw	= ads122c04_write_raw,
-    .attrs      = &ads122c04_attributes,
+    .attrs      = &ads122c04_attribute_group,
 };
 
 
@@ -525,6 +524,7 @@ static int ads122c04_client_get_channels_config(struct i2c_client *client)
 	struct device *dev = &client->dev;
 	struct fwnode_handle *node;
 	int i = -1;
+    int channel;
 
 	device_for_each_child_node(dev, node) {
 		u32 pval;
@@ -610,12 +610,12 @@ static void ads122c04_get_channels_config(struct i2c_client *client)
             .enabled = CHANNEL_DISABLED,
             .pga_enabled = ADS122C04_DEFAULT_PGA,
             .gain = ADS122C04_DEFAULT_GAIN,
-            .data_rate  = ADS122C04_DEFAULT_DATA_RATE
-            .turbo_mode = ADS122C04_DEFAULT_TURBO_MODE
+            .data_rate  = ADS122C04_DEFAULT_DATA_RATE,
+            .turbo_mode = ADS122C04_DEFAULT_TURBO_MODE,
             .conv_mode = ADS122C04_DEFAULT_CONV_MODE,
             .temperature_mode = ADS122C04_DEFAULT_TEMPERATURE_MODE,
             .vref = ADS122C04_DEFAULT_MAIN_VREF_REFERENCE,
-    }
+    };
 
     
 	/* Default configuration */
