@@ -34,6 +34,9 @@
 #define ADS122C04_DIVISION_FLOAT_SCALE   1000000 /*scale to calculate LSB*/
 #define ADS122C04_LSB_CALC_CONST         0xFFFFFF /* 2^24 */
 #define ADS122C04_DRDY_TRIES             5
+#define ADS122C04_TEMPERATURE_LSB        0.03125
+#define ADS122C04_TEMPERATURE_SCALE      100
+#define ADS122C04_TEMPERATURE_MASK       0x3FFF   
 
 #define ADS122C04_POWERDOWN	    0x02    /* 0000 001X */
 #define ADS122C04_RESET_CFGS    0x06    /* 0000 011X */
@@ -284,13 +287,13 @@ static int ads122c04_write_byte_data(const struct ads122c04_st *st, const u8 cmd
 {
     int ret = i2c_smbus_write_byte_data(st->client, cmd, *value);
     if (ret < 0) {
-        dev_err(&st->client->dev, "Failed to write data. Ret: %d; cmd: 0x%x; byte: 0x%x;\n", ret, cmd, *value);
+        dev_err(&st->client->dev, "Failed to write data. Ret: %d; cmd: 0x%x; byte: \
+                0x%x;\n", ret, cmd, *value);
         return ret;
     }
 
     return 0;
 }
-
 
 static int ads122c04_read_reg_value(const struct ads122c04_st *st, const u8 reg)
 {
@@ -310,7 +313,6 @@ static int ads122c04_check_data_drdy(const struct ads122c04_st *st)
     while(!(drdy & 0x80) && (++tries <= ADS122C04_DRDY_TRIES)) {
         drdy = ads122c04_read_reg_value(st, ADS122C04_RREG_CGF2_REG);
 
-        printk(KERN_CRIT "drdy %x", drdy);
         /* Wait a bit and check if data is ready to collect*/
         msleep(100); 
     }
@@ -351,8 +353,7 @@ static int ads122c04_read_adc(const struct ads122c04_st *st, int *value)
     if (adc_value & 0x800000) {
         adc_value |= 0xFF000000;  // Sign-extend the 24-bit result to 32-bit
     }
-    printk(KERN_CRIT "[ads122] %d %d %d %d\n", data[0], data[1],  data[2], adc_value);
-    
+   
     *value = adc_value;
 
     return 0;
@@ -510,7 +511,7 @@ static int ads122c04_convert_adc_value_to_millivolts(int32_t adc_value, uint32_t
     int lsb = ((2 * vref_mv * ADS122C04_DIVISION_FLOAT_SCALE)/gain)/ADS122C04_LSB_CALC_CONST;
     int mvolt = (adc_value * lsb) / ADS122C04_DIVISION_FLOAT_SCALE;
 
-    printk(KERN_CRIT "[ads122 - ads122c04_convert_to_millivolts] %d %d %d\n", mvolt, adc_value,  lsb);
+    //printk(KERN_CRIT "[ads122 - ads122c04_convert_to_millivolts] %d %d %d\n", mvolt, adc_value,  lsb);
     return (int) mvolt;
 }
 
@@ -540,6 +541,8 @@ static int ads122c04_get_vref_monitor(struct ads122c04_st *st, int especial_mux)
 static int ads122c04_process_raw(struct ads122c04_st *st, int chan, int *val)
 {
     int vref_mv = 0;
+    int temp = 0;
+    
 
     if (st->channel_data[chan].temperature_mode == ADS122C04_TEMPERATURE_MODE_OFF) {
         if (st->channel_data[chan].vref == ADS122C04_VREF_INTERNAL) {
@@ -551,7 +554,16 @@ static int ads122c04_process_raw(struct ads122c04_st *st, int chan, int *val)
         }
         return ads122c04_convert_adc_value_to_millivolts(*val, vref_mv, ads122c04_gain_cfg[st->channel_data[chan].gain]);
     } else {
-        
+        temp = *val >> 10;
+        if (temp & 0x2000) {
+            temp = temp - 1;
+            temp = (~temp) & ADS122C04_TEMPERATURE_MASK;
+            temp = temp * -ADS122C04_TEMPERATURE_LSB * ADS122C04_TEMPERATURE_SCALE
+        } else {
+            temp = temp * ADS122C04_TEMPERATURE_LSB * ADS122C04_TEMPERATURE_SCALE
+        }
+
+        return (int) temp;
     }
 
     return 0;
