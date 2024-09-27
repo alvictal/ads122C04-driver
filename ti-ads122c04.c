@@ -33,9 +33,10 @@
 
 #define ADS122C04_DIVISION_FLOAT_SCALE   1000000 /*scale to calculate LSB*/
 #define ADS122C04_LSB_CALC_CONST         0xFFFFFF /* 2^24 */
+#define ADS122C04_DRDY_TRIES             5
 
 #define ADS122C04_POWERDOWN	    0x02    /* 0000 001X */
-#define ADS122C04_RESET         0x06    /* 0000 011X */
+#define ADS122C04_RESET_CFGS    0x06    /* 0000 011X */
 #define ADS122C04_STARTSYNC	    0x08    /* 0000 100X */
 #define ADS122C04_RDATA	        0x10    /* 0001 XXXX */
 #define ADS122C04_RREG_CGF0_REG	0x20    /* 0010 00XX */
@@ -130,11 +131,10 @@ enum ads122c04_channels {
     ADS122C04_AIN1_AVSS,
     ADS122C04_AIN2_AVSS,
     ADS122C04_AIN3_AVSS,
-    // Options not supported for this driver
-    /*ADS122C04_VREF_MON, 
-    ADS122C04_AVDD_AVSS, 
-    ADS122C04_AINP_AINN_SHORTED,
-    ADS122C04_RESERVED, */
+    ADS122C04_VREF_MON, 
+    ADS122C04_AVDD_AVSS,
+    ADS122C04_AINP_AINN_SHORTED, 
+    ADS122C04_RESERVED, 
 };
 
 enum ads122c04_vref {
@@ -266,25 +266,33 @@ static const struct iio_chan_spec ads122c04_channels[] = {
 	ADS122C04_CHAN(3, ADS122C04_AIN3_AVSS),
 };
 
-static int ads122c04_write_value(const struct ads122c04_st *st, const u8 cmd, const u8 *value) 
-{
-    int ret;
 
-    if (value != NULL) {
-        ret = i2c_smbus_write_byte_data(st->client, cmd, *value);
-    } else {
-        ret = i2c_smbus_write_byte(st->client, cmd);
-    }
-    
+static int ads122c04_write_byte(const struct ads122c04_st *st, const u8 cmd) 
+{
+    int ret = i2c_smbus_write_byte(st->client, cmd);
+
     if (ret < 0) {
-        dev_err(&st->client->dev, "Failed to write configuration: %d cmd %d\n", ret, cmd);
+        dev_err(&st->client->dev, "Failed to write configuration: %d cmd 0x%x\n", ret, cmd);
         return ret;
     }
 
     return 0;
 }
 
-static int ads122c04_read_reg_value(const struct ads122c04_st *st, const u8 reg, u8 *value)
+
+static int ads122c04_write_byte_data(const struct ads122c04_st *st, const u8 cmd, const u8 *value) 
+{
+    int ret = i2c_smbus_write_byte_data(st->client, cmd, *value);
+    if (ret < 0) {
+        dev_err(&st->client->dev, "Failed to write data. Ret: %d; cmd: 0x%x; byte: 0x%x;\n", ret, cmd, *value);
+        return ret;
+    }
+
+    return 0;
+}
+
+
+static int ads122c04_read_reg_value(const struct ads122c04_st *st, const u8 reg)
 {
     if (reg < ADS122C04_RREG_CGF0_REG || reg > ADS122C04_RREG_CGF3_REG) 
         return -EINVAL;
@@ -292,15 +300,43 @@ static int ads122c04_read_reg_value(const struct ads122c04_st *st, const u8 reg,
     return  i2c_smbus_read_byte_data(st->client, reg);
 }
 
+
+static int ads122c04_check_data_drdy(const struct ads122c04_st *st)
+{
+    int ret = 0;
+    int tries = 0;
+    u8 drdy = 0;
+        
+    while(!(drdy & 0x80) && (++tries <= ADS122C04_DRDY_TRIES)) {
+        drdy = ads122c04_read_reg_value(st, ADS122C04_RREG_CGF2_REG);
+
+        printk(KERN_CRIT "drdy %x", drdy);
+        /* Wait a bit and check if data is ready to collect*/
+        msleep(100); 
+    }
+
+    if (tries > ADS122C04_DRDY_TRIES) {
+        dev_err(&st->client->dev, "Data is not getting ready to collect\n");
+        return -EBUSY;        
+    }
+
+    return 0; 
+}
+
+
+
 static int ads122c04_read_adc(const struct ads122c04_st *st, int *value)
 {
+    
     int ret;
     int32_t adc_value = 0;
 
     u8 data[3] = {0}; 
 
-    msleep(100); 
-
+    ret = ads122c04_check_data_drdy(st);
+    if (ret < 0) 
+        return ret;
+    
     // Read the ADC result from the data registers of ADS122C04
     ret = i2c_smbus_read_i2c_block_data(st->client, ADS122C04_RDATA, 3, data);
     if (ret < 0) {
@@ -323,6 +359,31 @@ static int ads122c04_read_adc(const struct ads122c04_st *st, int *value)
 }
 
 
+static void ads122c04_clear_cfg(const struct ads122c04_st *st)
+{
+    ads122c04_write_byte(st, ADS122C04_RESET_CFGS);    
+}
+
+
+static int ads122c04_send_start_command(const struct ads122c04_st *st)
+{
+    return ads122c04_write_byte(st, ADS122C04_STARTSYNC);
+}
+
+
+static int ads122c04_write_vref_monitor(const struct ads122c04_st *st, const int mux)
+{
+    u8 cfg = 0;
+
+    if ((mux < ADS122C04_VREF_MON)|| (mux > ADS122C04_AVDD_AVSS))
+        return -EINVAL;
+
+    cfg = mux << ADS122C04_CFG0_MUX_SHIFT;
+
+    return ads122c04_write_byte_data(st, ADS122C04_WREG_CGF0_REG, &cfg);
+}
+
+
 static int ads122c04_write_cfg0(const struct ads122c04_st *st, const int chan)
 {
     u8 cfg = 0;
@@ -332,8 +393,9 @@ static int ads122c04_write_cfg0(const struct ads122c04_st *st, const int chan)
         st->channel_data[chan].pga_enabled;
 
     
-    return ads122c04_write_value(st, ADS122C04_WREG_CGF0_REG, &cfg);
+    return ads122c04_write_byte_data(st, ADS122C04_WREG_CGF0_REG, &cfg);
 }
+
 
 static int ads122c04_write_cfg1(const struct ads122c04_st *st, const int chan)
 {
@@ -345,7 +407,7 @@ static int ads122c04_write_cfg1(const struct ads122c04_st *st, const int chan)
         st->channel_data[chan].vref << ADS122C04_CFG1_VREF_SHIFT |
         st->channel_data[chan].temperature_mode;
 
-    return ads122c04_write_value(st, ADS122C04_WREG_CGF1_REG, &cfg);
+    return ads122c04_write_byte_data(st, ADS122C04_WREG_CGF1_REG, &cfg);
 }
 
 static int ads122c04_write_cfg2(const struct ads122c04_st *st)
@@ -357,7 +419,7 @@ static int ads122c04_write_cfg2(const struct ads122c04_st *st)
         st->burnout << ADS122C04_CFG2_BCS_SHIFT |
         st->idac;
 
-    return ads122c04_write_value(st, ADS122C04_WREG_CGF2_REG, &cfg);
+    return ads122c04_write_byte_data(st, ADS122C04_WREG_CGF2_REG, &cfg);
 }
 
 
@@ -368,11 +430,12 @@ static int ads122c04_write_cfg3(const struct ads122c04_st *st)
     cfg = st->idac1_mux << ADS122C04_CFG3_I1MUX_SHIFT | 
         st->idac2_mux << ADS122C04_CFG3_I2MUX_SHIFT;
 
-    return ads122c04_write_value(st, ADS122C04_WREG_CGF3_REG, &cfg);
+    return ads122c04_write_byte_data(st, ADS122C04_WREG_CGF3_REG, &cfg);
 }
 
 
-static int ads122c04_get_adc_result(const struct ads122c04_st *st, const int chan, int *val)
+
+static int ads122c04_get_chan_adc_result(const struct ads122c04_st *st, const int chan, int *val)
 {
     int ret;
 
@@ -397,14 +460,13 @@ static int ads122c04_get_adc_result(const struct ads122c04_st *st, const int cha
 
     /* Start/Sync depends of the convertion mode and the
        Datasheet recomends send de STARTSYNC cmd when the cfg1 is modified */
-    ret = ads122c04_write_value(st, ADS122C04_STARTSYNC, NULL);
+    ret = ads122c04_send_start_command(st);
 	if (ret) {
 		return ret;
     }
 
 	return ads122c04_read_adc(st, val);
 }
-
 
 
 static int ads122c04_set_data_rate(struct ads122c04_st *st, int chan, int rate)
@@ -452,13 +514,44 @@ static int ads122c04_convert_adc_value_to_millivolts(int32_t adc_value, uint32_t
     return (int) mvolt;
 }
 
+static int ads122c04_get_vref_monitor(struct ads122c04_st *st, int especial_mux)
+{
+    int ret;
+    int adc_result = 0;
+
+    ads122c04_clear_cfg(st);
+
+    ret = ads122c04_write_vref_monitor(st, especial_mux);
+    if(ret)
+        return ret;
+
+    ret = ads122c04_send_start_command(st);
+	if (ret) {
+		return ret;
+    }
+
+    ret = ads122c04_read_adc(st, &adc_result);
+    if(ret)
+        return ret;
+
+    return ads122c04_convert_adc_value_to_millivolts(adc_result, ADS122C04_VREF_INTERNAL_REF_IN, 1) * 4;
+}
+
 static int ads122c04_process_raw(struct ads122c04_st *st, int chan, int *val)
 {
+    int vref_mv = 0;
 
-    printk(KERN_CRIT "[ads122 - ads122c04_process_raw] %d %d\n", st->channel_data[chan].vref, st->channel_data[chan].temperature_mode);
-    if (st->channel_data[chan].vref == ADS122C04_VREF_INTERNAL &&
-        st->channel_data[chan].temperature_mode == ADS122C04_TEMPERATURE_MODE_OFF) {
-        return ads122c04_convert_adc_value_to_millivolts(*val, ADS122C04_VREF_INTERNAL_REF_IN,ads122c04_gain_cfg[st->channel_data[chan].gain]);
+    if (st->channel_data[chan].temperature_mode == ADS122C04_TEMPERATURE_MODE_OFF) {
+        if (st->channel_data[chan].vref == ADS122C04_VREF_INTERNAL) {
+            vref_mv = ADS122C04_VREF_INTERNAL_REF_IN
+        } else if (st->channel_data[chan].vref == ADS122C04_VREF_EXTERNAL) {
+            vref_mv = ads122c04_get_vref_monitor(st, ADS122C04_VREF_MON);
+        } else { 
+            vref_mv = ads122c04_get_vref_monitor(st, ADS122C04_AVDD_AVSS);
+        }
+        return ads122c04_convert_adc_value_to_millivolts(*val, vref_mv, ads122c04_gain_cfg[st->channel_data[chan].gain]);
+    } else {
+        
     }
 
     return 0;
@@ -486,7 +579,7 @@ static int ads122c04_read_raw(struct iio_dev *indio_dev,
             goto release_direct;
         }
 
-		ret = ads122c04_get_adc_result(st, chan->address, val);
+		ret = ads122c04_get_chan_adc_result(st, chan->address, val);
 		if (ret < 0) {
 			goto release_direct;
 		}
@@ -760,4 +853,3 @@ module_i2c_driver(ads122c04_driver);
 MODULE_AUTHOR("Aluisio Leonello Victal <alvictal@gmail.com>");
 MODULE_DESCRIPTION("Texas Instruments ADS122C04 ADC driver");
 MODULE_LICENSE("GPL v2");
-
