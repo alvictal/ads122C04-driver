@@ -107,6 +107,9 @@
 #define ADS122C04_CONV_MODE_SINGLE      0
 #define ADS122C04_CONV_MODE_CONTINUES   1
 
+#define ADS122C04_BURN_OUT_MODE_OFF     0
+#define ADS122C04_BURN_OUT_MODE_ON      1
+
 
 #define ADS122C04_DEFAULT_PGA                   ADS122C04_PGA_ON
 #define ADS122C04_DEFAULT_GAIN                  0 /*1*/        
@@ -770,12 +773,50 @@ static void ads122c04_get_channels_config(struct i2c_client *client)
             .vref = ADS122C04_DEFAULT_MAIN_VREF_REFERENCE,
     };
     int i = 0;
+    int pval = 0;
 
     
 	/* Default configuration */
 	for(i = 0; i < ADS122C04_CHANNELS; ++i) {
 		data->channel_data[i] = chan_default;
 	}
+
+
+    if (fwnode_property_present(client->dev.of_node, "ti,turbo-mode-enabled"))
+        data->burnout = ADS122C04_BURN_OUT_MODE_ON;
+
+
+	if (!fwnode_property_read_u32(client->dev.of_node, "ti,idac-cfg", &pval)) {		
+	    if (pval > 7) {
+		    dev_err(dev, "invalid data_rate on %pfw\n", client->dev.of_node);
+		    fwnode_handle_put(node);
+		    return -EINVAL;
+	    }
+        data->idac = pval;
+    }
+
+    if (data->idac != 0) {
+        pval = 0;
+	    if (!fwnode_property_read_u32(client->dev.of_node, "ti,idac1-route", &pval)) {		
+	        if (pval > 6) {
+		        dev_err(dev, "invalid data_rate on %pfw\n", client->dev.of_node);
+		        fwnode_handle_put(node);
+		        return -EINVAL;
+	        }
+            data->idac1_mux = pval;
+	    }
+
+        pval = 0;
+	    if (!fwnode_property_read_u32(client->dev.of_node, "ti,idac2-route", &pval)) {		
+	        if (pval > 6) {
+		        dev_err(dev, "invalid data_rate on %pfw\n", client->dev.of_node);
+		        fwnode_handle_put(node);
+		        return -EINVAL;
+	        }
+            data->idac2_mux = pval;
+	    }
+    }
+
 
 	if (!ads122c04_client_get_channels_config(client))
 		return;

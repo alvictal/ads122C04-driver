@@ -24,6 +24,54 @@ properties:
   "#io-channel-cells":
     const: 1
 
+  ti,burn-out-mode-enabled:
+    description: 
+      Controls the 10-µA, burn-out current sources
+    type: boolean
+
+  ti,idac-cfg:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 0
+        maximum: 7
+        description: |
+          Set the current for both IDAC1 and IDAC2 excitation current sources
+          0: off (Default) 
+          1: 10 uA
+          2: 50 uA
+          3: 100 uA
+          4: 250 uA
+          5: 500 uA
+          6: 1000 uA
+          7: 1500 uA
+
+  ti,idac1-route:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 0
+        maximum: 6
+        description: |
+          Select the channel that IDAC1 is routed to
+          0: Disabled (Default) 
+          1: Connected to AIN0
+          2: Connected to AIN1
+          3: Connected to AIN2
+          4: Connected to AIN3
+          5: Connected to REFP
+          6: Connected to REFN
+
+  ti,idac2-route:
+        $ref: /schemas/types.yaml#/definitions/uint32
+        minimum: 0
+        maximum: 6
+        description: |
+          Select the channel that IDAC2 is routed to
+          0: Disabled (Default) 
+          1: Connected to AIN0
+          2: Connected to AIN1
+          3: Connected to AIN2
+          4: Connected to AIN3
+          5: Connected to REFP
+          6: Connected to REFN
+
 required:
   - compatible
   - reg
